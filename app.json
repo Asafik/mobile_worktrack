@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "Biustechno",
+    "slug": "biustechno",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/Biustechno_logo.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.biustechno.app",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "backgroundColor": "#ffffff",
+        "foregroundImage": "./assets/Biustechno_logo.png"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "0436852d-2dfe-4a61-b175-96c7edfd0c46"
+      }
+    },
+    "owner": "biustechnos-team",
+    "androidNavigationBar": {
+      "visible": "always",
+      "barStyle": "dark-content",
+      "backgroundColor": "#ffffff"
+    },
+    "androidStatusBar": {
+      "barStyle": "dark-content",
+      "backgroundColor": "#ffffff",
+      "translucent": true
+    }
+  }
+}
