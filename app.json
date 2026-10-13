@@ -4,7 +4,7 @@
     "slug": "biustechno",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/Biustechno_logo.png",
+    "icon": "./assets/Biustechno_logo_orig.png",
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true
@@ -14,7 +14,7 @@
       "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#ffffff",
-        "foregroundImage": "./assets/Biustechno_logo.png"
+        "foregroundImage": "./assets/Biustechno_logo_orig.png"
       }
     },
     "web": {

@@ -903,7 +903,7 @@ function MainApp() {
 
   if (showSplash) {
     return (
-      <View style={[styles.safeArea, styles.loadingSplashContainer, { paddingTop: topInset, paddingBottom: Math.max(bottomInset, 24) }]}>
+      <View style={[styles.safeArea, styles.loadingSplashContainer, { paddingTop: topInset, paddingBottom: bottomInset }]}>
         <StatusBar style="dark" backgroundColor="#ffffff" translucent={true} />
         <View style={styles.loadingSplashCenter}>
           <Image
@@ -911,14 +911,6 @@ function MainApp() {
             style={styles.loadingLogoImage}
             resizeMode="contain"
           />
-          <Text style={styles.splashBrandTagline}>WorkTrack • Workspace & Task Management</Text>
-          <View style={styles.loadingSpinnerRow}>
-            <ActivityIndicator size="small" color="#2563eb" />
-            <Text style={styles.loadingSpinnerText}>Menyiapkan ruang kerja...</Text>
-          </View>
-        </View>
-        <View style={styles.loadingSplashFooter}>
-          <Text style={styles.loadingFooterBrand}>Biustechno • Innovation in Health Technology</Text>
         </View>
       </View>
     );
@@ -2481,9 +2473,8 @@ const styles = StyleSheet.create({
   },
   loadingSplashContainer: {
     backgroundColor: '#ffffff',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 40,
   },
   loadingSplashCenter: {
     flex: 1,
@@ -2500,9 +2491,8 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   loadingLogoImage: {
-    width: 260,
-    height: 95,
-    marginBottom: 24,
+    width: 295,
+    height: 125,
   },
   loadingSpinnerRow: {
     flexDirection: 'row',
