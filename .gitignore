@@ -43,4 +43,4 @@ yarn-error.*
 # Binaries & Builds
 *.apk
 *.aab
-*orig*
+*.orig
