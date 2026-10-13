@@ -51,6 +51,17 @@ export const api = {
     return json.data || [];
   },
 
+  async createTasksBulk(host = DEFAULT_API_HOST, tasks, options = {}) {
+    const res = await fetch(`${host}/api/tasks`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tasks, ...options }),
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || 'Gagal mengirim tugas secara massal ke API');
+    return json.data || [];
+  },
+
   async createTask(host = DEFAULT_API_HOST, payload) {
     const res = await fetch(`${host}/api/tasks`, {
       method: 'POST',

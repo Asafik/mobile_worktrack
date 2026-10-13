@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   StyleSheet,
+  Animated,
   Text,
   View,
   Image,
@@ -23,6 +24,344 @@ import { Feather, Ionicons } from '@expo/vector-icons';
 
 const CATEGORIES = ['Semua', 'Revision', 'Idea', 'Meeting', 'Technical', 'General'];
 
+// =================================================================
+// SKELETON SHIMMER COMPONENTS (OPSI 2: INSTANT LOADING)
+// =================================================================
+function SkeletonBlock({ width = '100%', height = 16, borderRadius = 8, style }) {
+  const opacity = useRef(new Animated.Value(0.3)).current;
+
+  useEffect(() => {
+    const anim = Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, {
+          toValue: 0.82,
+          duration: 700,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacity, {
+          toValue: 0.3,
+          duration: 700,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    anim.start();
+    return () => anim.stop();
+  }, [opacity]);
+
+  return (
+    <Animated.View
+      style={[
+        {
+          width,
+          height,
+          borderRadius,
+          backgroundColor: '#e2e8f0',
+          opacity,
+        },
+        style,
+      ]}
+    />
+  );
+}
+
+function DashboardSkeleton() {
+  return (
+    <ScrollView style={styles.container} contentContainerStyle={styles.dashboardScrollContent} showsVerticalScrollIndicator={false}>
+      {/* Hero card skeleton */}
+      <View style={styles.heroCard}>
+        <SkeletonBlock width={140} height={14} style={{ marginBottom: 12 }} />
+        <SkeletonBlock width="75%" height={24} style={{ marginBottom: 10 }} />
+        <SkeletonBlock width="90%" height={14} />
+      </View>
+
+      {/* Grid 4 Cards */}
+      <View style={styles.statsGrid}>
+        {[1, 2, 3, 4].map((i) => (
+          <View key={i} style={styles.statCard}>
+            <SkeletonBlock width="60%" height={12} style={{ marginBottom: 12 }} />
+            <SkeletonBlock width={50} height={32} style={{ marginBottom: 10 }} />
+            <SkeletonBlock width="40%" height={10} />
+          </View>
+        ))}
+      </View>
+
+      {/* Progress card skeleton */}
+      <View style={styles.progressCard}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
+          <SkeletonBlock width="50%" height={16} />
+          <SkeletonBlock width={40} height={16} />
+        </View>
+        <SkeletonBlock width="100%" height={10} borderRadius={5} style={{ marginBottom: 10 }} />
+        <SkeletonBlock width="40%" height={12} />
+      </View>
+
+      {/* Action buttons skeleton */}
+      <View style={styles.quickActionsRow}>
+        <SkeletonBlock width="48%" height={48} borderRadius={10} />
+        <SkeletonBlock width="48%" height={48} borderRadius={10} />
+      </View>
+
+      {/* Recent Notes Skeleton */}
+      <SkeletonBlock width={140} height={18} style={{ marginBottom: 12, marginTop: 10 }} />
+      <View style={styles.emptyCard}>
+        <SkeletonBlock width="80%" height={16} style={{ marginBottom: 8 }} />
+        <SkeletonBlock width="50%" height={14} />
+      </View>
+
+      {/* Pending Tasks Skeleton */}
+      <SkeletonBlock width={180} height={18} style={{ marginBottom: 12, marginTop: 14 }} />
+      <View style={styles.emptyCard}>
+        <SkeletonBlock width="70%" height={16} style={{ marginBottom: 8 }} />
+        <SkeletonBlock width="45%" height={14} />
+      </View>
+    </ScrollView>
+  );
+}
+
+function NotesSkeleton() {
+  return (
+    <View style={styles.container}>
+      {/* Category Chips row */}
+      <View style={{ flexDirection: 'row', paddingHorizontal: 16, paddingVertical: 12, gap: 8 }}>
+        <SkeletonBlock width={70} height={32} borderRadius={16} />
+        <SkeletonBlock width={80} height={32} borderRadius={16} />
+        <SkeletonBlock width={65} height={32} borderRadius={16} />
+        <SkeletonBlock width={75} height={32} borderRadius={16} />
+      </View>
+
+      {/* Note cards */}
+      <ScrollView contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
+        {[1, 2, 3, 4].map((i) => (
+          <View key={i} style={styles.noteCard}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
+              <SkeletonBlock width={70} height={20} borderRadius={10} />
+              <SkeletonBlock width={40} height={20} borderRadius={10} />
+            </View>
+            <SkeletonBlock width="85%" height={18} style={{ marginBottom: 10 }} />
+            <SkeletonBlock width="100%" height={14} style={{ marginBottom: 6 }} />
+            <SkeletonBlock width="60%" height={14} style={{ marginBottom: 14 }} />
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+              <SkeletonBlock width={90} height={12} />
+              <SkeletonBlock width={50} height={12} />
+            </View>
+          </View>
+        ))}
+      </ScrollView>
+    </View>
+  );
+}
+
+function TasksSkeleton() {
+  return (
+    <View style={styles.container}>
+      {/* Status filter bar */}
+      <View style={{ flexDirection: 'row', paddingHorizontal: 16, paddingVertical: 12, gap: 8 }}>
+        <SkeletonBlock width={65} height={32} borderRadius={16} />
+        <SkeletonBlock width={80} height={32} borderRadius={16} />
+        <SkeletonBlock width={95} height={32} borderRadius={16} />
+        <SkeletonBlock width={70} height={32} borderRadius={16} />
+      </View>
+
+      {/* Task cards */}
+      <ScrollView contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
+        {[1, 2, 3, 4, 5].map((i) => (
+          <View key={i} style={styles.taskCard}>
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
+              <SkeletonBlock width={22} height={22} borderRadius={6} />
+              <View style={{ flex: 1 }}>
+                <SkeletonBlock width="80%" height={16} style={{ marginBottom: 8 }} />
+                <SkeletonBlock width="95%" height={12} style={{ marginBottom: 10 }} />
+                <View style={{ flexDirection: 'row', gap: 8 }}>
+                  <SkeletonBlock width={60} height={18} borderRadius={9} />
+                  <SkeletonBlock width={80} height={18} borderRadius={9} />
+                </View>
+              </View>
+            </View>
+          </View>
+        ))}
+      </ScrollView>
+    </View>
+  );
+}
+
+// =================================================================
+// PARSE NOTE TO TASKS HELPER
+// =================================================================
+function parseNoteToTasks(rawContent) {
+  if (!rawContent || !rawContent.trim()) return [];
+  const lines = rawContent.split('\n');
+  const items = [];
+  let currentItem = null;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+
+    const numMatch = line.match(/^(\d+)\.\s*(.*)/);
+    const boldMatch = line.match(/^\*\*(.*?)\*\*(.*)/);
+
+    if (numMatch) {
+      if (currentItem) items.push(finalizeTaskItem(currentItem, items.length + 1));
+      let titlePart = numMatch[2].trim();
+      let descPart = '';
+      const innerBold = titlePart.match(/^\*\*(.*?)\*\*(.*)/);
+      if (innerBold) {
+        titlePart = innerBold[1].trim();
+        descPart = innerBold[2].trim();
+      }
+      currentItem = {
+        title: titlePart,
+        rawDesc: descPart ? [descPart] : [],
+      };
+    } else if (boldMatch && !line.startsWith('* ')) {
+      if (currentItem) items.push(finalizeTaskItem(currentItem, items.length + 1));
+      currentItem = {
+        title: boldMatch[1].trim(),
+        rawDesc: boldMatch[2].trim() ? [boldMatch[2].trim()] : [],
+      };
+    } else if (currentItem) {
+      currentItem.rawDesc.push(line);
+    } else {
+      currentItem = {
+        title: line.replace(/^[-*•]\s*/, ''),
+        rawDesc: [],
+      };
+    }
+  }
+
+  if (currentItem) {
+    items.push(finalizeTaskItem(currentItem, items.length + 1));
+  }
+
+  return items.filter((it) => it.title && it.title.trim().length > 0);
+}
+
+function finalizeTaskItem(item, index) {
+  let cleanTitle = item.title
+    .replace(/\[Masuk Tasks\]|\(Masuk Tasks\)/gi, '')
+    .replace(/^[*_#\s]+|[*_#\s]+$/g, '')
+    .trim();
+  if (!cleanTitle) cleanTitle = `Poin Tugas ${index}`;
+
+  let cleanDesc = item.rawDesc
+    .map((d) => d.replace(/\[Masuk Tasks\]|\(Masuk Tasks\)/gi, '').trim())
+    .filter(Boolean)
+    .join('\n')
+    .trim();
+
+  return {
+    id: `item-${index}-${Date.now()}`,
+    title: cleanTitle,
+    description: cleanDesc,
+    selected: true,
+  };
+}
+
+// =================================================================
+// NOTE PREVIEW COMPONENT
+// =================================================================
+function NotePreviewContent({ content, title, category, projectName }) {
+  if (!content || !content.trim()) {
+    return (
+      <View style={styles.previewEmptyContainer}>
+        <Feather name="eye" size={36} color="#94a3b8" style={{ marginBottom: 10 }} />
+        <Text style={styles.previewEmptyTitle}>Belum Ada Isi Catatan</Text>
+        <Text style={styles.previewEmptySub}>
+          Ketik teks catatan Anda di tab "Tulis" untuk melihat hasil pratinjau format rapi di sini.
+        </Text>
+      </View>
+    );
+  }
+
+  const lines = content.split('\n');
+
+  return (
+    <ScrollView style={styles.previewScroll} showsVerticalScrollIndicator={false}>
+      {/* Title & Badges in Preview */}
+      <View style={styles.previewHeaderCard}>
+        <Text style={styles.previewTitleText}>{title || 'Catatan Baru'}</Text>
+        <View style={styles.previewBadgeRow}>
+          <View style={styles.noteCategoryBadge}>
+            <Text style={styles.noteCategoryText}>{category || 'General'}</Text>
+          </View>
+          {projectName ? (
+            <View style={styles.noteProjectBadge}>
+              <Feather name="folder" size={10} color="#6366f1" />
+              <Text style={styles.noteProjectText}>{projectName}</Text>
+            </View>
+          ) : null}
+        </View>
+      </View>
+
+      <View style={styles.previewContentCard}>
+        {lines.map((line, idx) => {
+          const trimmed = line.trim();
+          if (!trimmed) {
+            return <View key={idx} style={{ height: 8 }} />;
+          }
+
+          const numMatch = trimmed.match(/^(\d+)\.\s*(.*)/);
+          if (numMatch) {
+            const num = numMatch[1];
+            const textPart = numMatch[2];
+            return (
+              <View key={idx} style={styles.previewPointBox}>
+                <View style={styles.previewPointNumberBadge}>
+                  <Text style={styles.previewPointNumberText}>{num}</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <FormattedLineText text={textPart} isHeading={true} />
+                </View>
+              </View>
+            );
+          }
+
+          if (trimmed.startsWith('* ') || trimmed.startsWith('- ') || trimmed.startsWith('• ')) {
+            const bulletText = trimmed.replace(/^[-*•]\s*/, '');
+            return (
+              <View key={idx} style={styles.previewBulletRow}>
+                <View style={styles.previewBulletDot} />
+                <View style={{ flex: 1 }}>
+                  <FormattedLineText text={bulletText} />
+                </View>
+              </View>
+            );
+          }
+
+          return (
+            <View key={idx} style={{ marginBottom: 6 }}>
+              <FormattedLineText text={line} />
+            </View>
+          );
+        })}
+      </View>
+    </ScrollView>
+  );
+}
+
+function FormattedLineText({ text, isHeading = false }) {
+  if (!text.includes('**')) {
+    return (
+      <Text style={[styles.previewLineText, isHeading && styles.previewHeadingText]}>
+        {text}
+      </Text>
+    );
+  }
+
+  const parts = text.split('**');
+  return (
+    <Text style={[styles.previewLineText, isHeading && styles.previewHeadingText]}>
+      {parts.map((part, i) => (
+        <Text key={i} style={i % 2 === 1 ? styles.previewBoldText : undefined}>
+          {part}
+        </Text>
+      ))}
+    </Text>
+  );
+}
+
+
 export default function App() {
   return (
     <SafeAreaProvider>
@@ -43,6 +382,15 @@ function MainApp() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
+
+  // Opsi 3: Splash Screen Branding 850ms lalu transisi ke Dashboard (dengan Skeleton Shimmer)
+  useEffect(() => {
+    const splashTimer = setTimeout(() => {
+      setShowSplash(false);
+    }, 850);
+    return () => clearTimeout(splashTimer);
+  }, []);
 
   // Filter & Search states
   const [searchQuery, setSearchQuery] = useState('');
@@ -64,6 +412,15 @@ function MainApp() {
   const [noteProjectId, setNoteProjectId] = useState(null);
   const [noteIsPinned, setNoteIsPinned] = useState(false);
   const [isRefiningAi, setIsRefiningAi] = useState(false);
+  const [noteEditorMode, setNoteEditorMode] = useState('edit'); // 'edit' | 'preview'
+
+  // Send to Tasks states
+  const [sendTasksModalVisible, setSendTasksModalVisible] = useState(false);
+  const [parsedTasks, setParsedTasks] = useState([]);
+  const [sendTasksProjectId, setSendTasksProjectId] = useState(null);
+  const [sendTasksPriority, setSendTasksPriority] = useState('Medium');
+  const [sendTasksType, setSendTasksType] = useState('revision');
+  const [isSendingTasks, setIsSendingTasks] = useState(false);
 
   // Quick Task states
   
@@ -138,6 +495,8 @@ function MainApp() {
   const handleSelectProject = (id) => {
     if (projectPickerMode === 'note') {
       setNoteProjectId(id);
+    } else if (projectPickerMode === 'sendTasks') {
+      setSendTasksProjectId(id);
     } else if (projectPickerMode === 'task_quick') {
       setTaskProjectId(id);
     } else if (projectPickerMode === 'task_modal') {
@@ -245,6 +604,7 @@ function MainApp() {
   };
 
   const openEditNoteModal = (note) => {
+    setNoteEditorMode('edit');
     setEditingNote(note);
     setNoteTitle(note.title || '');
     setNoteContent(note.content || '');
@@ -285,6 +645,73 @@ function MainApp() {
       setNoteModalVisible(false);
     } catch (err) {
       Alert.alert('Gagal Menyimpan', err.message || 'Terjadi kesalahan saat menyimpan catatan.');
+    }
+  };
+
+
+  // OPEN SEND TO TASKS MODAL
+  const openSendTasksFromNote = (title, contentText, projectId, category) => {
+    if (!contentText || !contentText.trim()) {
+      Alert.alert('Perhatian', 'Isi catatan masih kosong. Tulis catatan terlebih dahulu.');
+      return;
+    }
+    const items = parseNoteToTasks(contentText);
+    if (items.length === 0) {
+      Alert.alert('Perhatian', 'Tidak ditemukan poin tugas. Pastikan catatan memiliki poin bernomor atau baris teks.');
+      return;
+    }
+    setParsedTasks(items);
+    setSendTasksProjectId(projectId || null);
+    if (category === 'Idea') setSendTasksType('feature');
+    else if (category === 'Technical') setSendTasksType('technical');
+    else setSendTasksType('revision');
+    setSendTasksPriority('Medium');
+    setSendTasksModalVisible(true);
+  };
+
+  const toggleParsedTaskSelection = (index) => {
+    setParsedTasks((prev) =>
+      prev.map((item, idx) =>
+        idx === index ? { ...item, selected: !item.selected } : item
+      )
+    );
+  };
+
+  const selectAllParsedTasks = (select) => {
+    setParsedTasks((prev) => prev.map((item) => ({ ...item, selected: select })));
+  };
+
+  const executeSendTasks = async () => {
+    const selected = parsedTasks.filter((t) => t.selected);
+    if (selected.length === 0) {
+      Alert.alert('Peringatan', 'Pilih minimal satu poin tugas yang ingin dikirim.');
+      return;
+    }
+
+    setIsSendingTasks(true);
+    try {
+      const payloadTasks = selected.map((t) => ({
+        title: t.title,
+        description: t.description || '',
+        project_id: sendTasksProjectId ? Number(sendTasksProjectId) : null,
+        priority: sendTasksPriority,
+        type: sendTasksType,
+        status: 'todo',
+      }));
+
+      const created = await api.createTasksBulk(activeApiHost, payloadTasks);
+      if (created && Array.isArray(created) && created.length > 0) {
+        setTasks((prev) => [...created, ...prev]);
+      } else {
+        const refreshedTasks = await api.getTasks(activeApiHost);
+        setTasks(refreshedTasks || []);
+      }
+      setSendTasksModalVisible(false);
+      Alert.alert('Sukses', `✅ Berhasil mengirim ${selected.length} tugas ke halaman Tasks!`);
+    } catch (err) {
+      Alert.alert('Gagal', err.message || 'Gagal mengirim tugas.');
+    } finally {
+      setIsSendingTasks(false);
     }
   };
 
@@ -472,25 +899,28 @@ function MainApp() {
     return found ? found.name : 'Proyek';
   }, [selectedProjectFilter, projects]);
 
-  if (loading) {
+
+
+  if (showSplash) {
     return (
-      <SafeAreaView style={[styles.safeArea, styles.loadingSplashContainer]}>
-        <StatusBar style="dark" backgroundColor="#ffffff" translucent={false} />
+      <View style={[styles.safeArea, styles.loadingSplashContainer, { paddingTop: topInset, paddingBottom: Math.max(bottomInset, 24) }]}>
+        <StatusBar style="dark" backgroundColor="#ffffff" translucent={true} />
         <View style={styles.loadingSplashCenter}>
           <Image
             source={require('./Biustechno.png')}
             style={styles.loadingLogoImage}
             resizeMode="contain"
           />
+          <Text style={styles.splashBrandTagline}>WorkTrack • Workspace & Task Management</Text>
           <View style={styles.loadingSpinnerRow}>
-            <ActivityIndicator size="small" color="#0284c7" />
-            <Text style={styles.loadingSpinnerText}>Menghubungkan ke Supabase...</Text>
+            <ActivityIndicator size="small" color="#2563eb" />
+            <Text style={styles.loadingSpinnerText}>Menyiapkan ruang kerja...</Text>
           </View>
         </View>
         <View style={styles.loadingSplashFooter}>
           <Text style={styles.loadingFooterBrand}>Biustechno • Innovation in Health Technology</Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -524,6 +954,9 @@ function MainApp() {
       {/* MAIN CONTENT AREA */}
       <View style={styles.container}>
         {activeTab === 'beranda' ? (
+          loading ? (
+            <DashboardSkeleton />
+          ) : (
           /* ================================================================= */
           /* TAB 0: BERANDA (DASHBOARD - IDENTIK DENGAN WEB) */
           <ScrollView
@@ -726,7 +1159,11 @@ function MainApp() {
 
             <View style={{ height: 40 }} />
           </ScrollView>
+          )
         ) : activeTab === 'notes' ? (
+          loading ? (
+            <NotesSkeleton />
+          ) : (
           /* ================================================================= */
           /* TAB 1: NOTES (FOKUS UTAMA) */
           /* ================================================================= */
@@ -858,16 +1295,31 @@ function MainApp() {
                     ) : null}
 
                     <View style={styles.noteCardFooter}>
-                      <Feather name="clock" size={12} color="#94a3b8" />
-                      <Text style={styles.noteDateText}>
-                        {item.updated_at
-                          ? new Date(item.updated_at).toLocaleDateString('id-ID', {
-                              day: 'numeric',
-                              month: 'short',
-                              year: 'numeric',
-                            })
-                          : 'Baru saja'}
-                      </Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                        <Feather name="clock" size={12} color="#94a3b8" />
+                        <Text style={styles.noteDateText}>
+                          {item.updated_at
+                            ? new Date(item.updated_at).toLocaleDateString('id-ID', {
+                                day: 'numeric',
+                                month: 'short',
+                                year: 'numeric',
+                              })
+                            : 'Baru saja'}
+                        </Text>
+                      </View>
+
+                      {/* QUICK SEND TO TASKS BUTTON */}
+                      <TouchableOpacity
+                        style={styles.cardSendTasksBtn}
+                        onPress={(e) => {
+                          e.stopPropagation();
+                          openSendTasksFromNote(item.title, item.content, item.project_id, item.category);
+                        }}
+                        activeOpacity={0.7}
+                      >
+                        <Feather name="list" size={12} color="#2563eb" />
+                        <Text style={styles.cardSendTasksText}>Kirim ke Tasks</Text>
+                      </TouchableOpacity>
                     </View>
                   </TouchableOpacity>
                 );
@@ -883,7 +1335,11 @@ function MainApp() {
               <Feather name="plus" size={24} color="#ffffff" />
             </TouchableOpacity>
           </View>
+          )
         ) : (
+          loading ? (
+            <TasksSkeleton />
+          ) : (
           /* ================================================================= */
           /* TAB 2: TASKS */
           /* ================================================================= */
@@ -1029,6 +1485,7 @@ function MainApp() {
               <Feather name="plus" size={24} color="#ffffff" />
             </TouchableOpacity>
           </KeyboardAvoidingView>
+          )
         )}
       </View>
 
@@ -1212,17 +1669,65 @@ function MainApp() {
                 </Text>
               </TouchableOpacity>
 
-              {/* Isi Catatan */}
-              <Text style={styles.modalLabel}>Isi Catatan / Poin Revisi</Text>
-              <TextInput
-                placeholder="Tuliskan catatan, hasil meeting, atau daftar revisi mentah di sini... Lalu tekan tombol AI di atas untuk merapikan otomatis!"
-                placeholderTextColor="#94a3b8"
-                style={styles.modalContentInput}
-                value={noteContent}
-                onChangeText={setNoteContent}
-                multiline={true}
-                textAlignVertical="top"
-              />
+              {/* Toolbar Editor: Label, Kirim ke Tasks, & Segmented Tab (Tulis / Preview) */}
+              <View style={styles.editorToolbarRow}>
+                <Text style={styles.modalLabelNoMargin}>Isi Catatan / Poin Revisi</Text>
+                <View style={styles.editorToolbarActions}>
+                  {/* Kirim ke Tasks Action */}
+                  <TouchableOpacity
+                    style={styles.toolbarSendTasksBtn}
+                    onPress={() => openSendTasksFromNote(noteTitle, noteContent, noteProjectId, noteCategory)}
+                    activeOpacity={0.7}
+                  >
+                    <Feather name="list" size={11} color="#2563eb" />
+                    <Text style={styles.toolbarSendTasksText}>Kirim ke Tasks</Text>
+                  </TouchableOpacity>
+
+                  {/* Segmented Switch: Tulis / Preview */}
+                  <View style={styles.segmentedTabWrap}>
+                    <TouchableOpacity
+                      style={[styles.segmentedTabItem, noteEditorMode === 'edit' && styles.segmentedTabItemActive]}
+                      onPress={() => setNoteEditorMode('edit')}
+                    >
+                      <Feather name="edit-2" size={11} color={noteEditorMode === 'edit' ? '#2563eb' : '#64748b'} />
+                      <Text style={[styles.segmentedTabText, noteEditorMode === 'edit' && styles.segmentedTabTextActive]}>
+                        Tulis
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={[styles.segmentedTabItem, noteEditorMode === 'preview' && styles.segmentedTabItemActive]}
+                      onPress={() => setNoteEditorMode('preview')}
+                    >
+                      <Feather name="eye" size={11} color={noteEditorMode === 'preview' ? '#2563eb' : '#64748b'} />
+                      <Text style={[styles.segmentedTabText, noteEditorMode === 'preview' && styles.segmentedTabTextActive]}>
+                        Preview
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+
+              {noteEditorMode === 'edit' ? (
+                <TextInput
+                  placeholder="Tuliskan catatan, hasil meeting, atau daftar revisi mentah di sini... Lalu tekan tombol AI di atas untuk merapikan otomatis!"
+                  placeholderTextColor="#94a3b8"
+                  style={styles.modalContentInput}
+                  value={noteContent}
+                  onChangeText={setNoteContent}
+                  multiline={true}
+                  textAlignVertical="top"
+                />
+              ) : (
+                <View style={styles.previewContainerBox}>
+                  <NotePreviewContent
+                    content={noteContent}
+                    title={noteTitle}
+                    category={noteCategory}
+                    projectName={noteProjectId ? projects.find((p) => p.id === noteProjectId)?.name : null}
+                  />
+                </View>
+              )}
             </ScrollView>
 
             <View style={styles.modalFooter}>
@@ -1668,6 +2173,291 @@ function MainApp() {
 }
 
 const styles = StyleSheet.create({
+
+  // TOOLBAR & PREVIEW STYLES
+  modalLabelNoMargin: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#334155',
+  },
+  editorToolbarRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+    marginTop: 6,
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  editorToolbarActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  toolbarSendTasksBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: '#eff6ff',
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+  },
+  toolbarSendTasksText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#2563eb',
+  },
+  segmentedTabWrap: {
+    flexDirection: 'row',
+    backgroundColor: '#f1f5f9',
+    borderRadius: 8,
+    padding: 2,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  segmentedTabItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  segmentedTabItemActive: {
+    backgroundColor: '#ffffff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  segmentedTabText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#64748b',
+  },
+  segmentedTabTextActive: {
+    color: '#2563eb',
+    fontWeight: '700',
+  },
+
+  // PREVIEW CONTAINER STYLES
+  previewContainerBox: {
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 10,
+    minHeight: 220,
+    maxHeight: 380,
+    overflow: 'hidden',
+  },
+  previewScroll: {
+    padding: 12,
+  },
+  previewHeaderCard: {
+    backgroundColor: '#ffffff',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    marginBottom: 10,
+  },
+  previewTitleText: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0f172a',
+    marginBottom: 6,
+  },
+  previewBadgeRow: {
+    flexDirection: 'row',
+    gap: 6,
+    alignItems: 'center',
+    flexWrap: 'wrap',
+  },
+  previewContentCard: {
+    backgroundColor: '#ffffff',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  previewPointBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 8,
+  },
+  previewPointNumberBadge: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#2563eb',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 1,
+  },
+  previewPointNumberText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#ffffff',
+  },
+  previewBulletRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    paddingLeft: 6,
+    marginBottom: 6,
+  },
+  previewBulletDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#2563eb',
+    marginTop: 7,
+  },
+  previewLineText: {
+    fontSize: 13,
+    lineHeight: 20,
+    color: '#334155',
+  },
+  previewHeadingText: {
+    fontWeight: '700',
+    color: '#0f172a',
+  },
+  previewBoldText: {
+    fontWeight: '700',
+    color: '#0f172a',
+  },
+  previewEmptyContainer: {
+    padding: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  previewEmptyTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#475569',
+    marginBottom: 4,
+  },
+  previewEmptySub: {
+    fontSize: 12,
+    color: '#94a3b8',
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+
+  // CARD QUICK SEND BUTTON
+  cardSendTasksBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#eff6ff',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#dbeafe',
+  },
+  cardSendTasksText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#2563eb',
+  },
+
+  // SEND TASKS MODAL STYLES
+  miniOptionRow: {
+    flexDirection: 'row',
+    gap: 6,
+    flexWrap: 'wrap',
+  },
+  miniChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    backgroundColor: '#f1f5f9',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  miniChipActive: {
+    backgroundColor: '#2563eb',
+    borderColor: '#2563eb',
+  },
+  miniChipText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#64748b',
+  },
+  miniChipTextActive: {
+    color: '#ffffff',
+    fontWeight: '700',
+  },
+  tasksHeaderBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 8,
+  },
+  tasksHeaderBarTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#1e293b',
+  },
+  selectToggleBtn: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    backgroundColor: '#f1f5f9',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  selectToggleText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#2563eb',
+  },
+  parsedTaskItemCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 8,
+  },
+  parsedTaskItemCardSelected: {
+    borderColor: '#93c5fd',
+    backgroundColor: '#eff6ff',
+  },
+  parsedTaskCheckbox: {
+    marginTop: 1,
+  },
+  parsedTaskTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#334155',
+    marginBottom: 2,
+  },
+  parsedTaskTitleSelected: {
+    color: '#1e3a8a',
+    fontWeight: '700',
+  },
+  parsedTaskDesc: {
+    fontSize: 11,
+    color: '#64748b',
+    lineHeight: 16,
+  },
+
   safeArea: {
     flex: 1,
     height: Platform.OS === 'web' ? '100vh' : '100%',
@@ -1701,6 +2491,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     width: '100%',
+  },
+  splashBrandTagline: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#64748b',
+    marginBottom: 22,
+    letterSpacing: 0.3,
   },
   loadingLogoImage: {
     width: 260,
