@@ -1662,7 +1662,7 @@ function MainApp() {
                   <Feather name="zap" size={15} color="#ffffff" />
                 )}
                 <Text style={styles.aiButtonText}>
-                  {isRefiningAi ? 'Gemini AI sedang merapikan...' : '✨ Rapikan Otomatis dengan AI'}
+                  ✨ Rapikan Otomatis dengan AI
                 </Text>
               </TouchableOpacity>
 
@@ -1777,10 +1777,6 @@ function MainApp() {
 
               {isRefiningAi ? (
                 <View style={styles.aiShimmerContainer}>
-                  <View style={styles.aiShimmerBadgeRow}>
-                    <ActivityIndicator size="small" color="#2563eb" />
-                    <Text style={styles.aiShimmerBadgeText}>Gemini AI sedang menyusun & merapikan teks...</Text>
-                  </View>
                   <View style={styles.aiShimmerCard}>
                     {/* Point 1 Shimmer */}
                     <View style={styles.aiShimmerPointRow}>
@@ -1806,6 +1802,14 @@ function MainApp() {
                       <View style={{ flex: 1, gap: 6 }}>
                         <SkeletonBlock width="80%" height={15} />
                         <SkeletonBlock width="90%" height={12} />
+                      </View>
+                    </View>
+                    {/* Point 4 Shimmer */}
+                    <View style={styles.aiShimmerPointRow}>
+                      <SkeletonBlock width={26} height={26} borderRadius={13} />
+                      <View style={{ flex: 1, gap: 6 }}>
+                        <SkeletonBlock width="55%" height={15} />
+                        <SkeletonBlock width="88%" height={12} />
                       </View>
                     </View>
                   </View>
