@@ -1643,22 +1643,44 @@ function MainApp() {
               keyboardDismissMode="on-drag"
               showsVerticalScrollIndicator={true}
             >
-              {/* AI REFINE BUTTON */}
-              <TouchableOpacity
-                onPress={handleAiRefine}
-                disabled={isRefiningAi}
-                style={[styles.aiButton, isRefiningAi && { opacity: 0.7 }]}
-                activeOpacity={0.8}
-              >
-                {isRefiningAi ? (
-                  <ActivityIndicator size="small" color="#ffffff" />
-                ) : (
-                  <Feather name="zap" size={15} color="#ffffff" />
-                )}
-                <Text style={styles.aiButtonText}>
-                  {isRefiningAi ? 'Gemini AI sedang merapikan...' : '✨ Rapikan Otomatis dengan AI'}
-                </Text>
-              </TouchableOpacity>
+              {/* AI REFINE BUTTON & API KEY CONFIG BUTTON */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                <TouchableOpacity
+                  onPress={handleAiRefine}
+                  disabled={isRefiningAi}
+                  style={[styles.aiButton, { flex: 1, marginBottom: 0 }, isRefiningAi && { opacity: 0.7 }]}
+                  activeOpacity={0.8}
+                >
+                  {isRefiningAi ? (
+                    <ActivityIndicator size="small" color="#ffffff" />
+                  ) : (
+                    <Feather name="zap" size={15} color="#ffffff" />
+                  )}
+                  <Text style={styles.aiButtonText}>
+                    {isRefiningAi ? 'Gemini AI sedang merapikan...' : '✨ Rapikan dengan AI'}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => {
+                    setApiKeyInput(userGeminiKey);
+                    setApiKeyModalVisible(true);
+                  }}
+                  style={{
+                    paddingVertical: 11,
+                    paddingHorizontal: 12,
+                    backgroundColor: userGeminiKey ? '#eff6ff' : '#fef2f2',
+                    borderRadius: 8,
+                    borderWidth: 1,
+                    borderColor: userGeminiKey ? '#bfdbfe' : '#fecaca',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Feather name="key" size={16} color={userGeminiKey ? '#2563eb' : '#dc2626'} />
+                </TouchableOpacity>
+              </View>
 
               {/* Judul Catatan */}
               <Text style={styles.modalLabel}>Judul Catatan</Text>
