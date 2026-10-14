@@ -16,8 +16,10 @@ import {
   KeyboardAvoidingView,
   Platform,
   StatusBar as RNStatusBar,
+  Keyboard,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, DEFAULT_API_HOST } from './src/api';
 import { Feather, Ionicons } from '@expo/vector-icons';
@@ -362,6 +364,30 @@ function FormattedLineText({ text, isHeading = false }) {
 }
 
 
+
+function useKeyboardHeight() {
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const showSub = Keyboard.addListener(showEvent, (e) => {
+      setKeyboardHeight(e.endCoordinates ? e.endCoordinates.height : 0);
+    });
+    const hideSub = Keyboard.addListener(hideEvent, () => {
+      setKeyboardHeight(0);
+    });
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
+  return keyboardHeight;
+}
+
 export default function App() {
   return (
     <SafeAreaProvider>
@@ -372,6 +398,25 @@ export default function App() {
 
 function MainApp() {
   const insets = useSafeAreaInsets();
+  const keyboardHeight = useKeyboardHeight();
+  const noteScrollRef = useRef(null);
+  const taskScrollRef = useRef(null);
+
+  // Gemini AI Key state
+  const [userGeminiKey, setUserGeminiKey] = useState('');
+  const [apiKeyModalVisible, setApiKeyModalVisible] = useState(false);
+  const [apiKeyInput, setApiKeyInput] = useState('');
+
+  // Load saved Gemini Key & Custom Host on start
+  useEffect(() => {
+    AsyncStorage.getItem('worktrack_gemini_key').then((val) => {
+      if (val) setUserGeminiKey(val);
+    }).catch(() => {});
+    AsyncStorage.getItem('worktrack_custom_host').then((val) => {
+      if (val) setCustomHost(val);
+    }).catch(() => {});
+  }, []);
+
   const topInset = Math.max(insets.top, Platform.OS === 'android' ? (RNStatusBar.currentHeight || 42) : 0);
   const bottomInset = Math.max(insets.bottom, Platform.OS === 'android' ? 48 : 16);
   const [activeTab, setActiveTab] = useState('beranda'); // 'beranda' | 'notes' | 'tasks'
@@ -1560,20 +1605,44 @@ function MainApp() {
             activeOpacity={1}
             onPress={() => setNoteModalVisible(false)}
           />
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            style={styles.modalContainer}
+          <View
+            style={[
+              styles.modalContainer,
+              keyboardHeight > 0 && { marginBottom: keyboardHeight },
+            ]}
           >
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
                 {editingNote ? 'Edit Catatan' : 'Catatan Baru'}
               </Text>
-              <TouchableOpacity onPress={() => setNoteModalVisible(false)}>
-                <Feather name="x" size={22} color="#64748b" />
-              </TouchableOpacity>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                {keyboardHeight > 0 && (
+                  <TouchableOpacity
+                    onPress={() => Keyboard.dismiss()}
+                    style={styles.keyboardDismissBtn}
+                    activeOpacity={0.7}
+                  >
+                    <Feather name="chevron-down" size={14} color="#2563eb" />
+                    <Text style={styles.keyboardDismissBtnText}>Tutup Keyboard</Text>
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity
+                  onPress={() => setNoteModalVisible(false)}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <Feather name="x" size={22} color="#64748b" />
+                </TouchableOpacity>
+              </View>
             </View>
 
-            <ScrollView style={styles.modalBody}>
+            <ScrollView
+              ref={noteScrollRef}
+              style={styles.modalBody}
+              contentContainerStyle={{ paddingBottom: 32 }}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="on-drag"
+              showsVerticalScrollIndicator={true}
+            >
               {/* AI REFINE BUTTON */}
               <TouchableOpacity
                 onPress={handleAiRefine}
@@ -1709,6 +1778,11 @@ function MainApp() {
                   onChangeText={setNoteContent}
                   multiline={true}
                   textAlignVertical="top"
+                  onFocus={() => {
+                    setTimeout(() => {
+                      noteScrollRef.current?.scrollToEnd({ animated: true });
+                    }, 250);
+                  }}
                 />
               ) : (
                 <View style={styles.previewContainerBox}>
@@ -1735,7 +1809,7 @@ function MainApp() {
                 </Text>
               </TouchableOpacity>
             </View>
-          </KeyboardAvoidingView>
+          </View>
         </SafeAreaView>
       </Modal>
 
@@ -1754,20 +1828,44 @@ function MainApp() {
             activeOpacity={1}
             onPress={() => setTaskModalVisible(false)}
           />
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            style={styles.modalContainer}
+          <View
+            style={[
+              styles.modalContainer,
+              keyboardHeight > 0 && { marginBottom: keyboardHeight },
+            ]}
           >
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
                 {editingTask ? 'Edit Tugas' : 'Tambah Tugas Baru'}
               </Text>
-              <TouchableOpacity onPress={() => setTaskModalVisible(false)}>
-                <Feather name="x" size={22} color="#64748b" />
-              </TouchableOpacity>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                {keyboardHeight > 0 && (
+                  <TouchableOpacity
+                    onPress={() => Keyboard.dismiss()}
+                    style={styles.keyboardDismissBtn}
+                    activeOpacity={0.7}
+                  >
+                    <Feather name="chevron-down" size={14} color="#2563eb" />
+                    <Text style={styles.keyboardDismissBtnText}>Tutup Keyboard</Text>
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity
+                  onPress={() => setTaskModalVisible(false)}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <Feather name="x" size={22} color="#64748b" />
+                </TouchableOpacity>
+              </View>
             </View>
 
-            <ScrollView style={styles.modalBody}>
+            <ScrollView
+              ref={taskScrollRef}
+              style={styles.modalBody}
+              contentContainerStyle={{ paddingBottom: 32 }}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="on-drag"
+              showsVerticalScrollIndicator={true}
+            >
               {/* Judul Tugas */}
               <Text style={styles.modalLabel}>Judul Tugas *</Text>
               <TextInput
@@ -1882,7 +1980,7 @@ function MainApp() {
                 </Text>
               </TouchableOpacity>
             </View>
-          </KeyboardAvoidingView>
+          </View>
         </SafeAreaView>
       </Modal>
 
@@ -1901,9 +1999,11 @@ function MainApp() {
             activeOpacity={1}
             onPress={() => setProjectPickerVisible(false)}
           />
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            style={styles.pickerContainer}
+          <View
+            style={[
+              styles.pickerContainer,
+              keyboardHeight > 0 && { marginBottom: keyboardHeight },
+            ]}
           >
             <View style={styles.pickerHeader}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -2081,7 +2181,7 @@ function MainApp() {
                 })
               )}
             </ScrollView>
-          </KeyboardAvoidingView>
+          </View>
         </SafeAreaView>
       </Modal>
 
@@ -2123,6 +2223,20 @@ function MainApp() {
               autoCorrect={false}
             />
 
+            <TouchableOpacity
+              onPress={() => {
+                setApiKeyInput(userGeminiKey);
+                setHostModalVisible(false);
+                setApiKeyModalVisible(true);
+              }}
+              style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, backgroundColor: '#eff6ff', borderRadius: 8, borderWidth: 1, borderColor: '#bfdbfe', marginBottom: 12 }}
+            >
+              <Feather name="zap" size={14} color="#2563eb" />
+              <Text style={{ fontSize: 12, fontWeight: '600', color: '#2563eb' }}>
+                {userGeminiKey ? 'Ubah API Key Gemini' : 'Atur API Key Gemini Sendiri'}
+              </Text>
+            </TouchableOpacity>
+
             <View style={styles.hostModalActions}>
               <TouchableOpacity
                 style={styles.hostResetBtn}
@@ -2160,11 +2274,114 @@ function MainApp() {
           </View>
         </View>
       </Modal>
+
+      {/* MODAL PENGATURAN API KEY GOOGLE GEMINI */}
+      <Modal
+        visible={apiKeyModalVisible}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setApiKeyModalVisible(false)}
+      >
+        <View style={styles.hostModalOverlay}>
+          <TouchableOpacity
+            style={StyleSheet.absoluteFill}
+            activeOpacity={1}
+            onPress={() => setApiKeyModalVisible(false)}
+          />
+          <View style={[styles.hostModalCard, keyboardHeight > 0 && { marginBottom: keyboardHeight }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Feather name="zap" size={20} color="#2563eb" />
+                <Text style={styles.hostModalTitle}>Google Gemini API Key</Text>
+              </View>
+              <TouchableOpacity onPress={() => setApiKeyModalVisible(false)}>
+                <Feather name="x" size={20} color="#64748b" />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.hostModalDesc}>
+              Masukkan Google Gemini API Key gratis Anda (dari Google AI Studio) untuk mengaktifkan fitur Rapikan dengan AI:
+            </Text>
+
+            <View style={styles.hostModalInputWrap}>
+              <TextInput
+                placeholder="AIzaSy..."
+                placeholderTextColor="#94a3b8"
+                style={styles.hostModalInput}
+                value={apiKeyInput}
+                onChangeText={setApiKeyInput}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
+
+            <Text style={{ fontSize: 11, color: '#64748b', marginBottom: 16 }}>
+              💡 Dapatkan gratis di: aistudio.google.com/apikey
+            </Text>
+
+            <View style={styles.hostModalActions}>
+              <TouchableOpacity
+                style={styles.hostResetBtn}
+                onPress={async () => {
+                  setApiKeyInput('');
+                  setUserGeminiKey('');
+                  try {
+                    await AsyncStorage.removeItem('worktrack_gemini_key');
+                  } catch (e) {}
+                  setApiKeyModalVisible(false);
+                  Alert.alert('Direset', 'Kembali menggunakan API Key default dari backend server.');
+                }}
+              >
+                <Text style={styles.hostResetText}>Gunakan Default</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.hostSaveBtn}
+                onPress={async () => {
+                  const key = apiKeyInput.trim();
+                  setUserGeminiKey(key);
+                  try {
+                    if (key) {
+                      await AsyncStorage.setItem('worktrack_gemini_key', key);
+                    } else {
+                      await AsyncStorage.removeItem('worktrack_gemini_key');
+                    }
+                    setApiKeyModalVisible(false);
+                    Alert.alert('Tersimpan', key ? 'API Key Gemini tersimpan! Silakan coba kembali fitur Rapikan dengan AI.' : 'API Key Gemini direset.');
+                  } catch (e) {
+                    Alert.alert('Error', 'Gagal menyimpan API Key');
+                  }
+                }}
+              >
+                <Text style={styles.hostSaveText}>Simpan Key</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  keyboardDismissBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#eff6ff',
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+  },
+  keyboardDismissBtnText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#2563eb',
+  },
+
 
   // TOOLBAR & PREVIEW STYLES
   modalLabelNoMargin: {
