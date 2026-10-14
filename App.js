@@ -402,16 +402,8 @@ function MainApp() {
   const noteScrollRef = useRef(null);
   const taskScrollRef = useRef(null);
 
-  // Gemini AI Key state
-  const [userGeminiKey, setUserGeminiKey] = useState('');
-  const [apiKeyModalVisible, setApiKeyModalVisible] = useState(false);
-  const [apiKeyInput, setApiKeyInput] = useState('');
-
-  // Load saved Gemini Key & Custom Host on start
+  // Load saved Custom Host on start
   useEffect(() => {
-    AsyncStorage.getItem('worktrack_gemini_key').then((val) => {
-      if (val) setUserGeminiKey(val);
-    }).catch(() => {});
     AsyncStorage.getItem('worktrack_custom_host').then((val) => {
       if (val) setCustomHost(val);
     }).catch(() => {});
@@ -1643,44 +1635,22 @@ function MainApp() {
               keyboardDismissMode="on-drag"
               showsVerticalScrollIndicator={true}
             >
-              {/* AI REFINE BUTTON & API KEY CONFIG BUTTON */}
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-                <TouchableOpacity
-                  onPress={handleAiRefine}
-                  disabled={isRefiningAi}
-                  style={[styles.aiButton, { flex: 1, marginBottom: 0 }, isRefiningAi && { opacity: 0.7 }]}
-                  activeOpacity={0.8}
-                >
-                  {isRefiningAi ? (
-                    <ActivityIndicator size="small" color="#ffffff" />
-                  ) : (
-                    <Feather name="zap" size={15} color="#ffffff" />
-                  )}
-                  <Text style={styles.aiButtonText}>
-                    {isRefiningAi ? 'Gemini AI sedang merapikan...' : '✨ Rapikan dengan AI'}
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={() => {
-                    setApiKeyInput(userGeminiKey);
-                    setApiKeyModalVisible(true);
-                  }}
-                  style={{
-                    paddingVertical: 11,
-                    paddingHorizontal: 12,
-                    backgroundColor: userGeminiKey ? '#eff6ff' : '#fef2f2',
-                    borderRadius: 8,
-                    borderWidth: 1,
-                    borderColor: userGeminiKey ? '#bfdbfe' : '#fecaca',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <Feather name="key" size={16} color={userGeminiKey ? '#2563eb' : '#dc2626'} />
-                </TouchableOpacity>
-              </View>
+              {/* AI REFINE BUTTON (TERPUSAT DI VERCEL BACKEND) */}
+              <TouchableOpacity
+                onPress={handleAiRefine}
+                disabled={isRefiningAi}
+                style={[styles.aiButton, isRefiningAi && { opacity: 0.7 }]}
+                activeOpacity={0.8}
+              >
+                {isRefiningAi ? (
+                  <ActivityIndicator size="small" color="#ffffff" />
+                ) : (
+                  <Feather name="zap" size={15} color="#ffffff" />
+                )}
+                <Text style={styles.aiButtonText}>
+                  {isRefiningAi ? 'Gemini AI sedang merapikan...' : '✨ Rapikan Otomatis dengan AI'}
+                </Text>
+              </TouchableOpacity>
 
               {/* Judul Catatan */}
               <Text style={styles.modalLabel}>Judul Catatan</Text>
@@ -2245,19 +2215,7 @@ function MainApp() {
               autoCorrect={false}
             />
 
-            <TouchableOpacity
-              onPress={() => {
-                setApiKeyInput(userGeminiKey);
-                setHostModalVisible(false);
-                setApiKeyModalVisible(true);
-              }}
-              style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, backgroundColor: '#eff6ff', borderRadius: 8, borderWidth: 1, borderColor: '#bfdbfe', marginBottom: 12 }}
-            >
-              <Feather name="zap" size={14} color="#2563eb" />
-              <Text style={{ fontSize: 12, fontWeight: '600', color: '#2563eb' }}>
-                {userGeminiKey ? 'Ubah API Key Gemini' : 'Atur API Key Gemini Sendiri'}
-              </Text>
-            </TouchableOpacity>
+            
 
             <View style={styles.hostModalActions}>
               <TouchableOpacity
@@ -2297,90 +2255,7 @@ function MainApp() {
         </View>
       </Modal>
 
-      {/* MODAL PENGATURAN API KEY GOOGLE GEMINI */}
-      <Modal
-        visible={apiKeyModalVisible}
-        animationType="fade"
-        transparent={true}
-        onRequestClose={() => setApiKeyModalVisible(false)}
-      >
-        <View style={styles.hostModalOverlay}>
-          <TouchableOpacity
-            style={StyleSheet.absoluteFill}
-            activeOpacity={1}
-            onPress={() => setApiKeyModalVisible(false)}
-          />
-          <View style={[styles.hostModalCard, Platform.OS === 'ios' && keyboardHeight > 0 && { marginBottom: keyboardHeight }]}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <Feather name="zap" size={20} color="#2563eb" />
-                <Text style={styles.hostModalTitle}>Google Gemini API Key</Text>
-              </View>
-              <TouchableOpacity onPress={() => setApiKeyModalVisible(false)}>
-                <Feather name="x" size={20} color="#64748b" />
-              </TouchableOpacity>
-            </View>
-
-            <Text style={styles.hostModalDesc}>
-              Masukkan Google Gemini API Key gratis Anda (dari Google AI Studio) untuk mengaktifkan fitur Rapikan dengan AI:
-            </Text>
-
-            <View style={styles.hostModalInputWrap}>
-              <TextInput
-                placeholder="AIzaSy..."
-                placeholderTextColor="#94a3b8"
-                style={styles.hostModalInput}
-                value={apiKeyInput}
-                onChangeText={setApiKeyInput}
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-            </View>
-
-            <Text style={{ fontSize: 11, color: '#64748b', marginBottom: 16 }}>
-              💡 Dapatkan gratis di: aistudio.google.com/apikey
-            </Text>
-
-            <View style={styles.hostModalActions}>
-              <TouchableOpacity
-                style={styles.hostResetBtn}
-                onPress={async () => {
-                  setApiKeyInput('');
-                  setUserGeminiKey('');
-                  try {
-                    await AsyncStorage.removeItem('worktrack_gemini_key');
-                  } catch (e) {}
-                  setApiKeyModalVisible(false);
-                  Alert.alert('Direset', 'Kembali menggunakan API Key default dari backend server.');
-                }}
-              >
-                <Text style={styles.hostResetText}>Gunakan Default</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.hostSaveBtn}
-                onPress={async () => {
-                  const key = apiKeyInput.trim();
-                  setUserGeminiKey(key);
-                  try {
-                    if (key) {
-                      await AsyncStorage.setItem('worktrack_gemini_key', key);
-                    } else {
-                      await AsyncStorage.removeItem('worktrack_gemini_key');
-                    }
-                    setApiKeyModalVisible(false);
-                    Alert.alert('Tersimpan', key ? 'API Key Gemini tersimpan! Silakan coba kembali fitur Rapikan dengan AI.' : 'API Key Gemini direset.');
-                  } catch (e) {
-                    Alert.alert('Error', 'Gagal menyimpan API Key');
-                  }
-                }}
-              >
-                <Text style={styles.hostSaveText}>Simpan Key</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      
 
     </View>
   );
