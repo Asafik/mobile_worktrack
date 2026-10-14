@@ -263,7 +263,7 @@ function finalizeTaskItem(item, index) {
 // =================================================================
 // NOTE PREVIEW COMPONENT
 // =================================================================
-function NotePreviewContent({ content, title, category, projectName }) {
+function NotePreviewContent({ content, title, category, projectName, onSwitchToEdit }) {
   if (!content || !content.trim()) {
     return (
       <View style={styles.previewEmptyContainer}>
@@ -279,7 +279,7 @@ function NotePreviewContent({ content, title, category, projectName }) {
   const lines = content.split('\n');
 
   return (
-    <ScrollView style={styles.previewScroll} showsVerticalScrollIndicator={false}>
+    <View style={styles.previewScroll}>
       {/* Title & Badges in Preview */}
       <View style={styles.previewHeaderCard}>
         <Text style={styles.previewTitleText}>{title || 'Catatan Baru'}</Text>
@@ -338,7 +338,19 @@ function NotePreviewContent({ content, title, category, projectName }) {
           );
         })}
       </View>
-    </ScrollView>
+
+      {/* Tombol Klik untuk Mulai Edit */}
+      {onSwitchToEdit && (
+        <TouchableOpacity
+          onPress={onSwitchToEdit}
+          style={styles.previewEditCtaBtn}
+          activeOpacity={0.8}
+        >
+          <Feather name="edit-2" size={15} color="#2563eb" />
+          <Text style={styles.previewEditCtaText}>Klik di Sini untuk Mulai Mengedit / Mengetik</Text>
+        </TouchableOpacity>
+      )}
+    </View>
   );
 }
 
@@ -641,7 +653,7 @@ function MainApp() {
   };
 
   const openEditNoteModal = (note) => {
-    setNoteEditorMode('edit');
+    setNoteEditorMode('preview'); // Buka di Preview agar bisa di-scroll baca leluasa tanpa keyboard!
     setEditingNote(note);
     setNoteTitle(note.title || '');
     setNoteContent(note.content || '');
@@ -1770,6 +1782,7 @@ function MainApp() {
                   onChangeText={setNoteContent}
                   multiline={true}
                   textAlignVertical="top"
+                  scrollEnabled={false}
                   onFocus={() => {
                     setTimeout(() => {
                       noteScrollRef.current?.scrollToEnd({ animated: true });
@@ -1783,6 +1796,7 @@ function MainApp() {
                     title={noteTitle}
                     category={noteCategory}
                     projectName={noteProjectId ? projects.find((p) => p.id === noteProjectId)?.name : null}
+                    onSwitchToEdit={() => setNoteEditorMode('edit')}
                   />
                 </View>
               )}
@@ -2357,8 +2371,26 @@ const styles = StyleSheet.create({
     borderColor: '#e2e8f0',
     borderRadius: 10,
     minHeight: 220,
-    maxHeight: 380,
-    overflow: 'hidden',
+    paddingBottom: 6,
+  },
+  previewEditCtaBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#eff6ff',
+    borderWidth: 1.5,
+    borderColor: '#93c5fd',
+    borderStyle: 'dashed',
+    paddingVertical: 13,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    marginTop: 14,
+  },
+  previewEditCtaText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#2563eb',
   },
   previewScroll: {
     padding: 12,
