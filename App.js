@@ -1608,7 +1608,7 @@ function MainApp() {
           <View
             style={[
               styles.modalContainer,
-              keyboardHeight > 0 && { marginBottom: keyboardHeight },
+              Platform.OS === 'ios' && keyboardHeight > 0 && { marginBottom: keyboardHeight },
             ]}
           >
             <View style={styles.modalHeader}>
@@ -1853,7 +1853,7 @@ function MainApp() {
           <View
             style={[
               styles.modalContainer,
-              keyboardHeight > 0 && { marginBottom: keyboardHeight },
+              Platform.OS === 'ios' && keyboardHeight > 0 && { marginBottom: keyboardHeight },
             ]}
           >
             <View style={styles.modalHeader}>
@@ -2024,7 +2024,7 @@ function MainApp() {
           <View
             style={[
               styles.pickerContainer,
-              keyboardHeight > 0 && { marginBottom: keyboardHeight },
+              Platform.OS === 'ios' && keyboardHeight > 0 && { marginBottom: keyboardHeight },
             ]}
           >
             <View style={styles.pickerHeader}>
@@ -2310,7 +2310,7 @@ function MainApp() {
             activeOpacity={1}
             onPress={() => setApiKeyModalVisible(false)}
           />
-          <View style={[styles.hostModalCard, keyboardHeight > 0 && { marginBottom: keyboardHeight }]}>
+          <View style={[styles.hostModalCard, Platform.OS === 'ios' && keyboardHeight > 0 && { marginBottom: keyboardHeight }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <Feather name="zap" size={20} color="#2563eb" />
