@@ -2031,6 +2031,214 @@ function MainApp() {
         </SafeAreaView>
       </Modal>
 
+
+      {/* ================================================================= */}
+      {/* MODAL KIRIM KE TASKS (PARSED CHECKLIST ITEMS DENGAN SELEKSI)      */}
+      {/* ================================================================= */}
+      <Modal
+        visible={sendTasksModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setSendTasksModalVisible(false)}
+      >
+        <SafeAreaView style={styles.modalOverlay}>
+          <TouchableOpacity
+            style={StyleSheet.absoluteFill}
+            activeOpacity={1}
+            onPress={() => setSendTasksModalVisible(false)}
+          />
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <View style={{ flex: 1, paddingRight: 8 }}>
+                <Text style={styles.modalTitle}>Kirim Poin ke Tasks</Text>
+                <Text style={styles.modalSubtitle}>Pilih poin revisi yang ingin dijadikan tugas resmi</Text>
+              </View>
+              <TouchableOpacity onPress={() => setSendTasksModalVisible(false)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <Feather name="x" size={22} color="#64748b" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView
+              style={styles.modalBody}
+              contentContainerStyle={{ paddingBottom: 32 }}
+              showsVerticalScrollIndicator={true}
+            >
+              {/* TARGET PROYEK */}
+              <Text style={styles.modalLabel}>Proyek Tujuan</Text>
+              <TouchableOpacity
+                style={styles.selectTriggerBtn}
+                onPress={() => openProjectPicker('sendTasks')}
+                activeOpacity={0.75}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
+                  <Feather name="folder" size={16} color="#6366f1" />
+                  <Text style={styles.selectTriggerText} numberOfLines={1}>
+                    {sendTasksProjectId
+                      ? (projects.find((p) => p.id === sendTasksProjectId)?.name || 'Proyek Terpilih')
+                      : 'Tanpa Proyek (Tugas Umum)'}
+                  </Text>
+                </View>
+                <View style={styles.selectTriggerRight}>
+                  <Text style={styles.selectTriggerActionText}>Ubah Proyek</Text>
+                  <Feather name="chevron-down" size={16} color="#64748b" />
+                </View>
+              </TouchableOpacity>
+
+              {/* TIPE & PRIORITAS TUGAS */}
+              <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16 }}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.modalLabel}>Tipe Tugas</Text>
+                  <View style={{ flexDirection: 'row', gap: 4 }}>
+                    {[
+                      { key: 'revision', label: 'Revisi' },
+                      { key: 'feature', label: 'Fitur' },
+                      { key: 'technical', label: 'Teknis' },
+                    ].map((t) => (
+                      <TouchableOpacity
+                        key={t.key}
+                        onPress={() => setSendTasksType(t.key)}
+                        style={[
+                          styles.sendTasksOptionChip,
+                          sendTasksType === t.key && styles.sendTasksOptionChipActive,
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.sendTasksOptionText,
+                            sendTasksType === t.key && styles.sendTasksOptionTextActive,
+                          ]}
+                        >
+                          {t.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.modalLabel}>Prioritas</Text>
+                  <View style={{ flexDirection: 'row', gap: 4 }}>
+                    {['Low', 'Medium', 'High'].map((p) => (
+                      <TouchableOpacity
+                        key={p}
+                        onPress={() => setSendTasksPriority(p)}
+                        style={[
+                          styles.sendTasksOptionChip,
+                          sendTasksPriority === p && styles.sendTasksOptionChipActive,
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.sendTasksOptionText,
+                            sendTasksPriority === p && styles.sendTasksOptionTextActive,
+                          ]}
+                        >
+                          {p}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              </View>
+
+              {/* SELECTION ACTION BAR (PILIH SEMUA / BATAL PILIH) */}
+              <View style={styles.sendTasksBarRow}>
+                <Text style={styles.sendTasksBarCountText}>
+                  Terpilih: <Text style={{ color: '#2563eb', fontWeight: '800' }}>{parsedTasks.filter((t) => t.selected).length}</Text> dari {parsedTasks.length} poin
+                </Text>
+
+                <View style={{ flexDirection: 'row', gap: 6 }}>
+                  <TouchableOpacity
+                    onPress={() => selectAllParsedTasks(true)}
+                    style={styles.sendTasksSelectAllBtn}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.sendTasksSelectAllText}>Pilih Semua</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => selectAllParsedTasks(false)}
+                    style={styles.sendTasksDeselectBtn}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.sendTasksDeselectText}>Batal Pilih</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* LIST CHECKBOX TUGAS */}
+              <View style={{ gap: 10 }}>
+                {parsedTasks.map((item, idx) => (
+                  <TouchableOpacity
+                    key={item.id || idx}
+                    onPress={() => toggleParsedTaskSelection(idx)}
+                    style={[
+                      styles.sendTaskCardItem,
+                      item.selected && styles.sendTaskCardItemActive,
+                    ]}
+                    activeOpacity={0.8}
+                  >
+                    <View
+                      style={[
+                        styles.sendTaskCheckbox,
+                        item.selected && styles.sendTaskCheckboxChecked,
+                      ]}
+                    >
+                      {item.selected && (
+                        <Feather name="check" size={13} color="#ffffff" />
+                      )}
+                    </View>
+
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        style={[
+                          styles.sendTaskItemTitle,
+                          item.selected && styles.sendTaskItemTitleActive,
+                        ]}
+                      >
+                        {item.title}
+                      </Text>
+                      {item.description ? (
+                        <Text style={styles.sendTaskItemDesc} numberOfLines={3}>
+                          {item.description}
+                        </Text>
+                      ) : null}
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
+
+            <View style={styles.modalFooter}>
+              <TouchableOpacity
+                onPress={() => setSendTasksModalVisible(false)}
+                style={styles.modalCancelBtn}
+              >
+                <Text style={styles.modalCancelText}>Batal</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={executeSendTasks}
+                disabled={isSendingTasks || parsedTasks.filter((t) => t.selected).length === 0}
+                style={[
+                  styles.modalSaveBtn,
+                  (isSendingTasks || parsedTasks.filter((t) => t.selected).length === 0) && { opacity: 0.6 },
+                ]}
+              >
+                {isSendingTasks ? (
+                  <ActivityIndicator size="small" color="#ffffff" />
+                ) : (
+                  <Feather name="send" size={15} color="#ffffff" />
+                )}
+                <Text style={styles.modalSaveText}>
+                  {isSendingTasks
+                    ? 'Mengirim...'
+                    : `Kirim (${parsedTasks.filter((t) => t.selected).length}) ke Tasks`}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </SafeAreaView>
+      </Modal>
+
       {/* ================================================================= */}
       {/* MODAL LIVE SEARCH PILIH PROYEK (SAMA PERSIS UNTUK NOTES & TASKS)  */}
       {/* ================================================================= */}
@@ -2317,6 +2525,122 @@ function MainApp() {
 }
 
 const styles = StyleSheet.create({
+  modalSubtitle: {
+    fontSize: 12,
+    color: '#64748b',
+    marginTop: 2,
+  },
+  sendTasksOptionChip: {
+    flex: 1,
+    paddingVertical: 7,
+    paddingHorizontal: 4,
+    borderRadius: 8,
+    backgroundColor: '#f1f5f9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  sendTasksOptionChipActive: {
+    backgroundColor: '#2563eb',
+    borderColor: '#2563eb',
+  },
+  sendTasksOptionText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#64748b',
+  },
+  sendTasksOptionTextActive: {
+    color: '#ffffff',
+    fontWeight: '700',
+  },
+  sendTasksBarRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    backgroundColor: '#f8fafc',
+    borderRadius: 8,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  sendTasksBarCountText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#334155',
+  },
+  sendTasksSelectAllBtn: {
+    paddingVertical: 5,
+    paddingHorizontal: 9,
+    backgroundColor: '#eff6ff',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+  },
+  sendTasksSelectAllText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#2563eb',
+  },
+  sendTasksDeselectBtn: {
+    paddingVertical: 5,
+    paddingHorizontal: 9,
+    backgroundColor: '#f1f5f9',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  sendTasksDeselectText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#64748b',
+  },
+  sendTaskCardItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    padding: 12,
+    backgroundColor: '#ffffff',
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
+  },
+  sendTaskCardItemActive: {
+    borderColor: '#93c5fd',
+    backgroundColor: '#f0f7ff',
+  },
+  sendTaskCheckbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    borderColor: '#cbd5e1',
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 2,
+  },
+  sendTaskCheckboxChecked: {
+    backgroundColor: '#2563eb',
+    borderColor: '#2563eb',
+  },
+  sendTaskItemTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#1e293b',
+    marginBottom: 2,
+  },
+  sendTaskItemTitleActive: {
+    color: '#1d4ed8',
+  },
+  sendTaskItemDesc: {
+    fontSize: 11,
+    color: '#64748b',
+    lineHeight: 16,
+  },
+
   // AI REFINE SHIMMER SKELETON STYLES
   aiShimmerContainer: {
     backgroundColor: '#ffffff',
