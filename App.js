@@ -624,12 +624,14 @@ function MainApp() {
       return;
     }
 
+    Keyboard.dismiss();
     setIsRefiningAi(true);
     try {
       const parsed = await api.refineAi(activeApiHost, noteTitle, noteContent);
       if (parsed.refined_content) setNoteContent(parsed.refined_content);
       if (parsed.title) setNoteTitle(parsed.title);
       if (parsed.category) setNoteCategory(parsed.category);
+      setNoteEditorMode('preview'); // Hasil rapi langsung tampil di Mode Preview!
       Alert.alert('Sukses', '✨ Catatan berhasil dirapikan secara profesional oleh AI!');
     } catch (err) {
       Alert.alert('Gagal AI', err.message || 'Tidak dapat menghubungi layanan AI.');
@@ -1773,7 +1775,42 @@ function MainApp() {
                 </View>
               </View>
 
-              {noteEditorMode === 'edit' ? (
+              {isRefiningAi ? (
+                <View style={styles.aiShimmerContainer}>
+                  <View style={styles.aiShimmerBadgeRow}>
+                    <ActivityIndicator size="small" color="#2563eb" />
+                    <Text style={styles.aiShimmerBadgeText}>Gemini AI sedang menyusun & merapikan teks...</Text>
+                  </View>
+                  <View style={styles.aiShimmerCard}>
+                    {/* Point 1 Shimmer */}
+                    <View style={styles.aiShimmerPointRow}>
+                      <SkeletonBlock width={26} height={26} borderRadius={13} />
+                      <View style={{ flex: 1, gap: 6 }}>
+                        <SkeletonBlock width="70%" height={15} />
+                        <SkeletonBlock width="100%" height={12} />
+                        <SkeletonBlock width="85%" height={12} />
+                      </View>
+                    </View>
+                    {/* Point 2 Shimmer */}
+                    <View style={styles.aiShimmerPointRow}>
+                      <SkeletonBlock width={26} height={26} borderRadius={13} />
+                      <View style={{ flex: 1, gap: 6 }}>
+                        <SkeletonBlock width="60%" height={15} />
+                        <SkeletonBlock width="95%" height={12} />
+                        <SkeletonBlock width="75%" height={12} />
+                      </View>
+                    </View>
+                    {/* Point 3 Shimmer */}
+                    <View style={styles.aiShimmerPointRow}>
+                      <SkeletonBlock width={26} height={26} borderRadius={13} />
+                      <View style={{ flex: 1, gap: 6 }}>
+                        <SkeletonBlock width="80%" height={15} />
+                        <SkeletonBlock width="90%" height={12} />
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              ) : noteEditorMode === 'edit' ? (
                 <TextInput
                   placeholder="Tuliskan catatan, hasil meeting, atau daftar revisi mentah di sini... Lalu tekan tombol AI di atas untuk merapikan otomatis!"
                   placeholderTextColor="#94a3b8"
@@ -2276,6 +2313,47 @@ function MainApp() {
 }
 
 const styles = StyleSheet.create({
+  // AI REFINE SHIMMER SKELETON STYLES
+  aiShimmerContainer: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    padding: 16,
+    minHeight: 240,
+  },
+  aiShimmerBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#eff6ff',
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    alignSelf: 'flex-start',
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+  },
+  aiShimmerBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#2563eb',
+  },
+  aiShimmerCard: {
+    gap: 12,
+  },
+  aiShimmerPointRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    backgroundColor: '#f8fafc',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+  },
+
   keyboardDismissBtn: {
     flexDirection: 'row',
     alignItems: 'center',
